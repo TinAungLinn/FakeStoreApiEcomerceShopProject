@@ -1,34 +1,63 @@
-import { createContext, useContext, useReducer, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  useState,
+} from "react";
+import { reducer } from "./reducer";
 
- const StateContext = createContext();
+const StateContext = createContext();
 
 export const ContextProvider = ({ children }) => {
 
+
+
+
+
+
+// Logics
+
   const initialState = {
-    count : 0,
-    value : 10,
+    products: [],
+    cart: [],
   };
 
-  const reducer = (state, action) => {
-    switch (action.type) {
-      case "increase":
-        return {...state,count:state.count + 1};
-      case "increase2":
-        return {...state,value:state.value + 10}
-      default:
-        return state;
-    }
+  const [search ,setSearch] = useState('');
+
+  const [productsList, setProductsList] = useState([]);
+
+  useEffect(() => {
+    dispatch({ type: "GET_PRODUCTS", payload: productsList });
+    const filterProduct = productsList.filter(item => item.title.toLowerCase().includes(search));
+    dispatch({type:"GET_PRODUCTS", payload: filterProduct})
+  }, [productsList,search]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const api = await fetch(`https://fakestoreapi.com/products`);
+    const data = await api.json();
+
+    setProductsList(data);
   };
 
+  
   const [state, dispatch] = useReducer(reducer, initialState);
+  
+  const data = { state, dispatch, search, setSearch };
 
-  const data = { state, dispatch };
+// End Logic
 
-  return (
-    <StateContext.Provider value={data}>
-      {children}
-    </StateContext.Provider>
-  );
+
+
+
+
+
+
+  return <StateContext.Provider value={data}>{children}</StateContext.Provider>;
 };
 
 export const useContextCustom = () => useContext(StateContext);
